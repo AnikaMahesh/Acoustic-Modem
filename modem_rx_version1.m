@@ -14,26 +14,23 @@ y_t = y_r(start_idx+length(x_sync):end); % y_t is the signal which starts at the
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  Put your decoder code here
-len = length(y_t);
-t = (1:1:len)/Fs;
-wave = cos((2*pi*f_c)/Fs.*t);
-hold on
-plot(t, wave)
+t = (0:length(y_t)-1)'/Fs; 
+x_d = y_t .* cos(2*pi*f_c*t); 
+x_d_fil = lowpass(x_d,100,Fs,'Steepness',0.99); 
+per = 100; 
 
-x_d = y_t;
-x_d = conv(wave,x_d);
-x_d = lowpass(x_d, 100, Fs, steepness=0.99);
-plot(t, y_t(1:len), "DisplayName","y_t")
-hold on
-plot(t, x_d(1:len), "DisplayName","x_d")
+mid_idx = (per/2):per:length(x_d_fil); % middle of each bit
+s_vals = x_d_fil(mid_idx); % sampled values/bit
+d_bit = s_vals > 0; % pos is 1 neg is 0
 
-legend()
-%%
+tot_bits = msg_length*8; % total bits
+
+x_d = d_bit(1:tot_bits); % cut off extra bits at the end
+
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 % convert to a string assuming that x_d is a vector of 1s and 0s
 % representing the decoded bits.
-%BitsToString(x_d)
-
+BitsToString(x_d)
